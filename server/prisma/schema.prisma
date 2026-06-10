@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  DISPATCHER
+  OPERATOR
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  fullName     String
+  email         String   @unique
+  passwordHash  String
+  role          UserRole
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Department {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum IncidentStatus {
+  NEW
+  REVIEW
+  ASSIGNED
+  RESOLVED
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model EmergencyCall {
+  id          Int      @id @default(autoincrement())
+  callerPhone String?
+  transcript  String
+  audioFile   String?
+  language    String?
+  createdAt   DateTime @default(now())
+
+  incidents   Incident[]
+}
+
+model Incident {
+  id             Int              @id @default(autoincrement())
+  title          String
+  description    String?
+  emergencyType  String
+  priority       Priority         @default(MEDIUM)
+  status         IncidentStatus   @default(NEW)
+  location       String?
+  aiConfidence   Float?
+  shortSummary String?
+  riskLevel    String?
+  keywords     Json?
+
+  emergencyCallId Int?
+  emergencyCall   EmergencyCall? @relation(fields: [emergencyCallId], references: [id])
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
