@@ -1,4 +1,3 @@
-const prisma = require("../config/prisma");
 const { analyzeTranscript } = require("../services/ai.service");
 
 const analyzeCall = async (req, res) => {
@@ -11,30 +10,14 @@ const analyzeCall = async (req, res) => {
       });
     }
 
-    // Get AI analysis
     const aiResult = await analyzeTranscript(transcript);
 
-    // Save as Incident
-    const incident = await prisma.incident.create({
-      data: {
-        title: aiResult.title,
-        description: aiResult.summary,
-        emergencyType: aiResult.emergencyType,
-        priority: aiResult.priority,
-        location: aiResult.location,
-        aiConfidence: aiResult.aiConfidence,
-      },
-    });
-
-    return res.status(201).json({
-      message: "Incident created successfully",
-      incident,
-    });
+    return res.status(200).json(aiResult);
   } catch (error) {
     console.error(error);
 
     return res.status(500).json({
-      message: "AI processing failed",
+      message: "AI analysis failed",
     });
   }
 };
