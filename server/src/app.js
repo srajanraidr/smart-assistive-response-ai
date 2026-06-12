@@ -7,7 +7,7 @@ const departmentRoutes = require('./routes/department.routes');
 const incidentRoutes = require('./routes/incident.routes');
 const authenticate = require('./middleware/auth.middleware');
 const aiRoutes = require("./routes/ai.routes");
-
+const callRoutes = require("./routes/call.routes");
 
 const app = express();
 
@@ -18,6 +18,7 @@ app.use(express.json());
 app.use('/api/auth',authRoutes);
 app.use('/api/departments',authenticate,departmentRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/calls", callRoutes);
 app.use('/api/incidents',authenticate,incidentRoutes);
 app.get("/", (req, res) => {
   res.json({

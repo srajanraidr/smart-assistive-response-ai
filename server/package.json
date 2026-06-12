@@ -14,6 +14,7 @@
   "dependencies": {
     "@google/genai": "^2.8.0",
     "@prisma/client": "^6.19.3",
+    "assemblyai": "^4.34.5",
     "bcrypt": "^6.0.0",
     "compression": "^1.8.1",
     "cors": "^2.8.6",

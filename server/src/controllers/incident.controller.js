@@ -85,15 +85,19 @@ const createIncidentFromAI = async (req, res) => {
 
     // Save incident
     const incident = await prisma.incident.create({
-      data: {
-        title: aiResult.title,
-        description: aiResult.summary,
-        emergencyType: aiResult.emergencyType,
-        priority: aiResult.priority,
-        location: aiResult.location,
-        aiConfidence: aiResult.aiConfidence,
-      },
-    });
+  data: {
+    title: aiResult.title,
+    description: aiResult.summary,
+    emergencyType: aiResult.emergencyType,
+    priority: aiResult.priority,
+    location: aiResult.location,
+    aiConfidence: aiResult.aiConfidence,
+    recommendedDepartment: aiResult.recommendedDepartment,
+    riskLevel: aiResult.riskLevel,
+    keywords: aiResult.keywords,
+    requiresHumanReview: aiResult.requiresHumanReview,
+  },
+});
 
     // Broadcast to all connected dashboards
     getIO().emit("new-incident", incident);

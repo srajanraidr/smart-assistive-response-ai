@@ -6,25 +6,74 @@ const ai = new GoogleGenAI({
 
 async function analyzeTranscript(transcript) {
   const prompt = `
-You are an emergency dispatch assistant.
+You are an AI-powered Emergency Dispatch Assistant.
 
-Analyze the following emergency transcript.
+Your role is to analyze emergency call transcripts and extract structured information to assist human dispatchers.
 
-Return ONLY valid JSON with this structure:
+IMPORTANT RULES:
+- Return ONLY valid JSON.
+- Do NOT include markdown, explanations, or extra text.
+- Do NOT fabricate information.
+- If a value cannot be determined from the transcript, return null.
+- Base your output only on information explicitly stated or strongly implied in the transcript.
+- The AI provides recommendations only. Human dispatchers make all operational decisions.
+
+Allowed emergencyType values:
+- Medical
+- Fire
+- Crime
+- Accident
+- Natural Disaster
+- Hazardous Material
+- Rescue
+- Domestic Violence
+- Infrastructure Failure
+- Other
+
+Allowed priority values:
+- LOW
+- MEDIUM
+- HIGH
+- CRITICAL
+
+Allowed recommendedDepartment values:
+- Ambulance
+- Fire
+- Police
+- Hazmat
+- Search & Rescue
+- Multi-Agency
+
+Allowed riskLevel values:
+- Low
+- Moderate
+- High
+- Extreme
+
+Return ONLY this JSON structure:
 
 {
   "emergencyType": "",
   "priority": "",
   "title": "",
   "summary": "",
-  "location": "",
-  "aiConfidence": 0.0
+  "location": null,
+  "recommendedDepartment": "",
+  "riskLevel": "",
+  "keywords": [],
+  "aiConfidence": 0.0,
+  "requiresHumanReview": true
 }
 
-Rules:
-- Do not invent facts.
-- If information is unavailable, use null.
-- priority must be one of: LOW, MEDIUM, HIGH, CRITICAL.
+Field rules:
+- title: Short incident title (5-10 words).
+- summary: One or two factual sentences.
+- location: Extract only if explicitly mentioned; otherwise return null.
+- keywords: Return 3-6 short keywords from the transcript.
+- aiConfidence: Number between 0.0 and 1.0.
+- requiresHumanReview: Always true.
+
+Never invent addresses, names, injuries, or other missing facts.
 
 Transcript:
 ${transcript}

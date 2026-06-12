@@ -13,28 +13,12 @@ enum UserRole {
   OPERATOR
 }
 
-model User {
-  id           Int      @id @default(autoincrement())
-  fullName     String
-  email         String   @unique
-  passwordHash  String
-  role          UserRole
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-model Department {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
 enum IncidentStatus {
   NEW
   REVIEW
   ASSIGNED
+  EN_ROUTE
+  ON_SCENE
   RESOLVED
   CLOSED
 }
@@ -46,34 +30,56 @@ enum Priority {
   CRITICAL
 }
 
-model EmergencyCall {
-  id          Int      @id @default(autoincrement())
-  callerPhone String?
-  transcript  String
-  audioFile   String?
-  language    String?
-  createdAt   DateTime @default(now())
+model User {
+  id           Int      @id @default(autoincrement())
+  fullName     String
+  email        String   @unique
+  passwordHash String
+  role         UserRole
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
 
-  incidents   Incident[]
+model Department {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EmergencyCall {
+  id                   Int      @id @default(autoincrement())
+  callerPhone          String?
+  transcript           String
+  transcriptConfidence Float?
+  audioFile            String?
+  language             String?
+  createdAt            DateTime @default(now())
+
+  incidents Incident[]
 }
 
 model Incident {
-  id             Int              @id @default(autoincrement())
-  title          String
-  description    String?
-  emergencyType  String
-  priority       Priority         @default(MEDIUM)
-  status         IncidentStatus   @default(NEW)
-  location       String?
-  aiConfidence   Float?
-  shortSummary String?
-  riskLevel    String?
-  keywords     Json?
+  id Int @id @default(autoincrement())
+
+  title         String
+  description   String?
+  emergencyType String
+  priority      Priority
+  location      String?
+  aiConfidence  Float?
+
+  recommendedDepartment String?
+  riskLevel             String?
+  keywords              Json?
+  requiresHumanReview   Boolean @default(true)
 
   emergencyCallId Int?
   emergencyCall   EmergencyCall? @relation(fields: [emergencyCallId], references: [id])
 
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-}
+  status IncidentStatus @default(NEW)
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

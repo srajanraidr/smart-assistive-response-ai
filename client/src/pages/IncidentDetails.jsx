@@ -98,6 +98,27 @@ catch(error){
       Close
     </button>
   </div>
+  <p>
+  <strong>Recommended Department:</strong>{" "}
+  {incident.recommendedDepartment || "Unknown"}
+</p>
+
+<p>
+  <strong>Risk Level:</strong>{" "}
+  {incident.riskLevel || "Unknown"}
+</p>
+
+<p>
+  <strong>Requires Human Review:</strong>{" "}
+  {incident.requiresHumanReview ? "Yes" : "No"}
+</p>
+
+<p>
+  <strong>Keywords:</strong>{" "}
+  {Array.isArray(incident.keywords)
+    ? incident.keywords.join(", ")
+    : "None"}
+</p>
 </div>
   );
 }
