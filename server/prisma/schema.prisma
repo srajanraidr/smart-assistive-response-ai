@@ -36,8 +36,11 @@ model User {
   email        String   @unique
   passwordHash String
   role         UserRole
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+
+  assignedIncidents Incident[] @relation("IncidentAssignee")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Department {
@@ -78,8 +81,31 @@ model Incident {
   emergencyCallId Int?
   emergencyCall   EmergencyCall? @relation(fields: [emergencyCallId], references: [id])
 
+  // Dispatcher assignment
+  assignedToId Int?
+  assignedTo   User? @relation("IncidentAssignee", fields: [assignedToId], references: [id])
+
   status IncidentStatus @default(NEW)
+
+  history IncidentHistory[]
+
+  latitude  Float?
+  longitude Float?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model IncidentHistory {
+  id         Int      @id @default(autoincrement())
+
+  incidentId Int
+  incident   Incident @relation(fields: [incidentId], references: [id])
+
+  action String @default("STATUS_CHANGED")        // e.g. CREATED, STATUS_CHANGED, ASSIGNED
+  oldStatus  String?
+  newStatus  String?
+  message    String?
+
+  changedAt  DateTime @default(now())
 }

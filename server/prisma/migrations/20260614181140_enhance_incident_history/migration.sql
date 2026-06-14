@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE `incidenthistory` ADD COLUMN `action` VARCHAR(191) NOT NULL DEFAULT 'STATUS_CHANGED',
+    ADD COLUMN `message` VARCHAR(191) NULL,
+    MODIFY `newStatus` VARCHAR(191) NULL;

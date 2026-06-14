@@ -1,124 +1,252 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import "../styles/incident-details.css";
 import api from "../api/axios";
+import "../styles/incident-details.css";
 
 export default function IncidentDetails() {
   const { id } = useParams();
 
   const [incident, setIncident] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [dispatchers, setDispatchers] = useState([]);
+  const [selectedDispatcher, setSelectedDispatcher] = useState("");
+
+  const allowedTransitions = {
+    NEW: ["REVIEW"],
+    REVIEW: ["ASSIGNED"],
+    ASSIGNED: ["EN_ROUTE"],
+    EN_ROUTE: ["ON_SCENE"],
+    ON_SCENE: ["RESOLVED"],
+    RESOLVED: ["CLOSED"],
+    CLOSED: [],
+  };
 
   useEffect(() => {
-    const fetchIncident = async () => {
-      try {
-        const res = await api.get(`/incidents/${id}`);
-        setIncident(res.data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
     fetchIncident();
+    fetchHistory();
+    fetchDispatchers();
   }, [id]);
 
-  const updateStatus = async(status)=>{
-    try{
-       await api.patch(`/incidents/${id}/status`, {
-      status,
-    });
+  const fetchIncident = async () => {
+    try {
+      const res = await api.get(`/incidents/${id}`);
+      setIncident(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-    const updated = await api.get(`/incidents/${id}`);
-    setIncident(updated.data);
-  }
-catch(error){
-    console.error(error);
-}}
+  const fetchHistory = async () => {
+    try {
+      const res = await api.get(`/incidents/${id}/history`);
+      setHistory(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchDispatchers = async () => {
+    try {
+      // Change to "/users/dispatchers" if you moved the route
+      const res = await api.get("/incidents/dispatchers");
+      setDispatchers(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const updateStatus = async (status) => {
+    try {
+      await api.patch(`/incidents/${id}/status`, {
+        status,
+      });
+
+      fetchIncident();
+      fetchHistory();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const assignDispatcher = async () => {
+    if (!selectedDispatcher) return;
+
+    try {
+      await api.patch(`/incidents/${id}/assign`, {
+        userId: selectedDispatcher,
+      });
+
+      fetchIncident();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   if (!incident) {
-    return <p>Loading...</p>;
+    return <h2>Loading...</h2>;
   }
+
+  const nextStatuses = allowedTransitions[incident.status] || [];
+
+  const buttons = [
+    { label: "Review", value: "REVIEW" },
+    { label: "Assign", value: "ASSIGNED" },
+    { label: "En Route", value: "EN_ROUTE" },
+    { label: "On Scene", value: "ON_SCENE" },
+    { label: "Resolve", value: "RESOLVED" },
+    { label: "Close", value: "CLOSED" },
+  ];
 
   return (
     <div className="incident-details-container">
-  <h1 className="incident-details-title">{incident.title}</h1>
+      <h1>{incident.title}</h1>
 
-  <p className="detail-row">
-    <strong>Emergency Type:</strong> {incident.emergencyType}
-  </p>
+      <div className="detail-card">
+        <p>
+          <strong>🚨 Emergency Type:</strong> {incident.emergencyType}
+        </p>
 
-  <p className="detail-row">
-    <strong>Priority:</strong> {incident.priority}
-  </p>
+        <p>
+          <strong>⚠️ Priority:</strong> {incident.priority}
+        </p>
 
-  <p className="detail-row">
-    <strong>Status:</strong> {incident.status}
-  </p>
+        <p>
+          <strong>📊 Status:</strong> {incident.status}
+        </p>
 
-  <p className="detail-row">
-    <strong>Location:</strong> {incident.location || "Unknown"}
-  </p>
+        <p>
+          <strong>📍 Location:</strong>{" "}
+          {incident.location || "Unknown"}
+        </p>
 
-  <p className="detail-row">
-    <strong>AI Confidence:</strong>{" "}
-    {incident.aiConfidence != null
-      ? `${Math.round(incident.aiConfidence * 100)}%`
-      : "N/A"}
-  </p>
+        <p>
+          <strong>🤖 AI Confidence:</strong>{" "}
+          {incident.aiConfidence != null
+            ? `${Math.round(incident.aiConfidence * 100)}%`
+            : "N/A"}
+        </p>
 
-  <p className="detail-row">
-    <strong>Description:</strong> {incident.description}
-  </p>
+        <p>
+          <strong>🏢 Recommended Department:</strong>{" "}
+          {incident.recommendedDepartment || "N/A"}
+        </p>
 
-  <div className="action-buttons">
-    <button
-      type="button"
-      onClick={() => updateStatus("REVIEW")}
-      disabled={incident.status === "REVIEW"}
-    >
-      REVIEW
-    </button>
-    <button
-      type="button"
-      onClick={() => updateStatus("ASSIGNED")}
-      disabled={incident.status === "ASSIGNED"}
-    >
-      Assign
-    </button>
-    <button
-      type="button"
-      onClick={() => updateStatus("RESOLVED")}
-      disabled={incident.status === "RESOLVED"}
-    >
-      Resolve
-    </button>
-    <button
-      type="button"
-      onClick={() => updateStatus("CLOSED")}
-      disabled={incident.status === "CLOSED"}
-    >
-      Close
-    </button>
-  </div>
-  <p>
-  <strong>Recommended Department:</strong>{" "}
-  {incident.recommendedDepartment || "Unknown"}
-</p>
+        <p>
+          <strong>🔥 Risk Level:</strong>{" "}
+          {incident.riskLevel || "N/A"}
+        </p>
 
-<p>
-  <strong>Risk Level:</strong>{" "}
-  {incident.riskLevel || "Unknown"}
-</p>
+        <p>
+          <strong>👤 Assigned To:</strong>{" "}
+          {incident.assignedTo
+            ? incident.assignedTo.fullName
+            : "Unassigned"}
+        </p>
 
-<p>
-  <strong>Requires Human Review:</strong>{" "}
-  {incident.requiresHumanReview ? "Yes" : "No"}
-</p>
+        <p>
+          <strong>📝 Description:</strong>
+        </p>
 
-<p>
-  <strong>Keywords:</strong>{" "}
-  {Array.isArray(incident.keywords)
-    ? incident.keywords.join(", ")
-    : "None"}
-</p>
-</div>
+        <p>{incident.description || "No description"}</p>
+
+        {Array.isArray(incident.keywords) &&
+          incident.keywords.length > 0 && (
+            <>
+              <strong>🏷️ Keywords:</strong>
+
+              <div style={{ marginTop: 10 }}>
+                {incident.keywords.map((keyword, index) => (
+                  <span
+                    key={index}
+                    style={{
+                      display: "inline-block",
+                      padding: "6px 12px",
+                      marginRight: "8px",
+                      marginBottom: "8px",
+                      borderRadius: "20px",
+                      background: "#e5e7eb",
+                    }}
+                  >
+                    {keyword}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
+      </div>
+
+      <h2>Assign Dispatcher</h2>
+
+      <div style={{ marginBottom: "20px" }}>
+        <select
+          value={selectedDispatcher}
+          onChange={(e) =>
+            setSelectedDispatcher(e.target.value)
+          }
+        >
+          <option value="">Select dispatcher</option>
+
+          {dispatchers.map((dispatcher) => (
+            <option
+              key={dispatcher.id}
+              value={dispatcher.id}
+            >
+              {dispatcher.fullName}
+            </option>
+          ))}
+        </select>
+
+        <button
+          style={{ marginLeft: "10px" }}
+          onClick={assignDispatcher}
+        >
+          Assign
+        </button>
+      </div>
+
+      <h2>Status Actions</h2>
+
+      <div className="button-group">
+        {buttons.map((button) => (
+          <button
+            key={button.value}
+            disabled={
+              !nextStatuses.includes(button.value)
+            }
+            onClick={() =>
+              updateStatus(button.value)
+            }
+          >
+            {button.label}
+          </button>
+        ))}
+      </div>
+
+      <h2>Status Timeline</h2>
+
+      {history.length === 0 ? (
+        <p>No status changes yet.</p>
+      ) : (
+        <div className="timeline">
+          {history.map((item) => (
+            <div
+              key={item.id}
+              className="timeline-item"
+            >
+              <strong>
+                {item.oldStatus || "CREATED"} →{" "}
+                {item.newStatus}
+              </strong>
+
+              <div>
+                {new Date(
+                  item.changedAt
+                ).toLocaleString()}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

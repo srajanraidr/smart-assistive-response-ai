@@ -68,7 +68,10 @@ Return ONLY this JSON structure:
 Field rules:
 - title: Short incident title (5-10 words).
 - summary: One or two factual sentences.
-- location: Extract only if explicitly mentioned; otherwise return null.
+- location: Extract the exact place name, address, landmark, street, city, or intersection explicitly mentioned by the caller.
+- Preserve the wording as spoken when possible.
+- If no location is mentioned, return null.
+- Never invent or guess a location.
 - keywords: Return 3-6 short keywords from the transcript.
 - aiConfidence: Number between 0.0 and 1.0.
 - requiresHumanReview: Always true.

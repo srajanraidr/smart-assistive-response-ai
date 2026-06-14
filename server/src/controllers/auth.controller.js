@@ -1,10 +1,19 @@
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const prisma = require("../config/prisma");
-const jwt = require('jsonwebtoken');
 
+/**
+ * POST /api/auth/register
+ */
 const register = async (req, res) => {
   try {
     const { fullName, email, password, role } = req.body;
+
+    if (!fullName || !email || !password || !role) {
+      return res.status(400).json({
+        message: "All fields are required",
+      });
+    }
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -16,18 +25,18 @@ const register = async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
       data: {
         fullName,
         email,
-        passwordHash: hashedPassword,
+        passwordHash,
         role,
       },
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "User registered successfully",
       user: {
         id: user.id,
@@ -39,12 +48,15 @@ const register = async (req, res) => {
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Internal server error",
     });
   }
 };
 
+/**
+ * POST /api/auth/login
+ */
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -55,21 +67,21 @@ const login = async (req, res) => {
 
     if (!user) {
       return res.status(401).json({
-        message: "Invalid email or password",
+        message: "Invalid credentials",
       });
     }
-    const passwordMatch = await bcrypt.compare(
+
+    const isPasswordValid = await bcrypt.compare(
       password,
       user.passwordHash
     );
 
-    if (!passwordMatch) {
+    if (!isPasswordValid) {
       return res.status(401).json({
-        message: "Invalid email or password",
+        message: "Invalid credentials",
       });
     }
 
-    // Create a JWT token
     const token = jwt.sign(
       {
         userId: user.id,
@@ -77,7 +89,7 @@ const login = async (req, res) => {
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: "24h",
+        expiresIn: "1d",
       }
     );
 
@@ -102,5 +114,5 @@ const login = async (req, res) => {
 
 module.exports = {
   register,
-    login,
+  login,
 };
