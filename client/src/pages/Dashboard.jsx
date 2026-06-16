@@ -3,10 +3,81 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import socket from "../socket";
 import "../styles/dashboard.css";
+import PriorityBadge from "../components/PriorityBadge";
+import StatusBadge from "../components/StatusBadge";
+
+function StatusColumn({ title, incidents, navigate }) {
+  return (
+    <div
+      style={{
+        minWidth: "300px",
+        flex: 1,
+        background: "#51667a",
+        borderRadius: "12px",
+        padding: "16px",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+      }}
+    >
+      <h2 style={{ marginBottom: "16px" }}>
+        {title} ({incidents.length})
+      </h2>
+
+      {incidents.length === 0 && (
+        <p style={{ color: "#6b7280" }}>
+          No incidents
+        </p>
+      )}
+
+      {incidents.map((incident) => (
+        <div
+          key={incident.id}
+          onClick={() =>
+            navigate(`/incidents/${incident.id}`)
+          }
+          style={{
+            background: "#f8f8f8",
+            borderRadius: "10px",
+            padding: "12px",
+            marginBottom: "12px",
+            cursor: "pointer",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+          }}
+        >
+          <h4 style={{ margin: 0 }}>
+            {incident.title}
+          </h4>
+
+          <p>
+            <strong>🚨 Priority:</strong>{" "}
+            <PriorityBadge priority={incident.priority} />
+          </p>
+
+          <p>📂 {incident.emergencyType}</p>
+
+          <p>
+            📍{" "}
+            {incident.location || "Unknown"}
+          </p>
+
+          {incident.recommendedDepartment && (
+            <p>
+              🏥{" "}
+              {
+                incident.recommendedDepartment
+              }
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const [incidents, setIncidents] = useState([]);
   const [search, setSearch] = useState("");
+  const [notification, setNotification] =
+    useState("");
 
   const navigate = useNavigate();
 
@@ -24,134 +95,228 @@ export default function Dashboard() {
 
     const handleNewIncident = (incident) => {
       setIncidents((prev) => {
-        const exists = prev.some((i) => i.id === incident.id);
-        if (exists) return prev;
+        if (
+          prev.some((i) => i.id === incident.id)
+        ) {
+          return prev;
+        }
 
         return [incident, ...prev];
       });
+
+      setNotification(
+        `🚨 New Incident: ${incident.title}`
+      );
+
+      setTimeout(() => {
+        setNotification("");
+      }, 5000);
     };
 
-    socket.on("new-incident", handleNewIncident);
+    const handleIncidentUpdated = (
+      updatedIncident
+    ) => {
+      setIncidents((prev) =>
+        prev.map((incident) =>
+          incident.id === updatedIncident.id
+            ? updatedIncident
+            : incident
+        )
+      );
+    };
+
+    socket.on(
+      "new-incident",
+      handleNewIncident
+    );
+    socket.on(
+      "incident-updated",
+      handleIncidentUpdated
+    );
 
     return () => {
-      socket.off("new-incident", handleNewIncident);
+      socket.off(
+        "new-incident",
+        handleNewIncident
+      );
+      socket.off(
+        "incident-updated",
+        handleIncidentUpdated
+      );
     };
   }, []);
 
-  // Dashboard statistics
-  const total = incidents.length;
+  const filteredIncidents =
+    incidents.filter((incident) => {
+      const q = search.toLowerCase();
 
-  const critical = incidents.filter(
-    (i) => i.priority === "CRITICAL"
-  ).length;
+      return (
+        incident.title
+          .toLowerCase()
+          .includes(q) ||
+        incident.emergencyType
+          .toLowerCase()
+          .includes(q) ||
+        (incident.location || "")
+          .toLowerCase()
+          .includes(q)
+      );
+    });
 
-  const active = incidents.filter(
-    (i) => i.status !== "RESOLVED" && i.status !== "CLOSED"
-  ).length;
-
-  const resolved = incidents.filter(
-    (i) => i.status === "RESOLVED"
-  ).length;
-
-  // Search filter
-  const filteredIncidents = incidents.filter((incident) => {
-    const query = search.toLowerCase();
-
-    return (
-      incident.title.toLowerCase().includes(query) ||
-      incident.emergencyType.toLowerCase().includes(query) ||
-      (incident.location || "").toLowerCase().includes(query)
+  const newIncidents =
+    filteredIncidents.filter(
+      (i) => i.status === "NEW"
     );
-  });
+
+  const assignedIncidents =
+    filteredIncidents.filter(
+      (i) => i.status === "ASSIGNED"
+    );
+
+  const enRouteIncidents =
+    filteredIncidents.filter(
+      (i) => i.status === "EN_ROUTE"
+    );
+
+  const onSceneIncidents =
+    filteredIncidents.filter(
+      (i) => i.status === "ON_SCENE"
+    );
+
+  const resolvedIncidents =
+    filteredIncidents.filter(
+      (i) => i.status === "RESOLVED"
+    );
 
   return (
-    <div className="dashboard-container">
-      <h1 className="dashboard-title">🚨 SARA Dashboard</h1>
+    <div style={{ padding: "24px" }}>
+      <h1>🚨 SARA Command Center</h1>
 
-      {/* Statistics */}
-      <div className="stats-grid">
+      {notification && (
+        <div
+          style={{
+            background: "#dc2626",
+            color: "#fff",
+            padding: "12px",
+            borderRadius: "8px",
+            marginBottom: "20px",
+            fontWeight: "bold",
+          }}
+        >
+          {notification}
+        </div>
+      )}
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns:
+            "repeat(4,1fr)",
+          gap: "16px",
+          marginBottom: "20px",
+        }}
+      >
         <div className="stat-card">
-          <h3>Total Incidents</h3>
-          <p>{total}</p>
+          <h3>Total</h3>
+          <h2>{incidents.length}</h2>
         </div>
 
         <div className="stat-card">
           <h3>Critical</h3>
-          <p>{critical}</p>
+          <h2>
+            {
+              incidents.filter(
+                (i) =>
+                  i.priority ===
+                  "CRITICAL"
+              ).length
+            }
+          </h2>
         </div>
 
         <div className="stat-card">
           <h3>Active</h3>
-          <p>{active}</p>
+          <h2>
+            {
+              incidents.filter(
+                (i) =>
+                  i.status !==
+                    "RESOLVED" &&
+                  i.status !==
+                    "CLOSED"
+              ).length
+            }
+          </h2>
         </div>
 
         <div className="stat-card">
           <h3>Resolved</h3>
-          <p>{resolved}</p>
+          <h2>
+            {
+              incidents.filter(
+                (i) =>
+                  i.status ===
+                  "RESOLVED"
+              ).length
+            }
+          </h2>
         </div>
       </div>
 
-      {/* Search */}
       <input
-        className="search-box"
         type="text"
-        placeholder="🔍 Search by title, type or location..."
+        placeholder="🔍 Search incidents..."
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) =>
+          setSearch(e.target.value)
+        }
+        style={{
+          width: "100%",
+          padding: "12px",
+          marginBottom: "24px",
+          borderRadius: "8px",
+        }}
       />
 
-      {/* Incident List */}
-      {filteredIncidents.length === 0 ? (
-        <p style={{ marginTop: "20px" }}>No incidents found.</p>
-      ) : (
-        filteredIncidents.map((incident) => (
-          <div
-            key={incident.id}
-            className="incident-card"
-            onClick={() => navigate(`/incidents/${incident.id}`)}
-            style={{ cursor: "pointer" }}
-          >
-            <h2 className="incident-title">{incident.title}</h2>
+      <div
+        style={{
+          display: "flex",
+          gap: "20px",
+          overflowX: "auto",
+          alignItems: "flex-start",
+        }}
+      >
+        <StatusColumn
+          title="🆕 NEW"
+          incidents={newIncidents}
+          navigate={navigate}
+        />
 
-            <p className="incident-info">
-              <strong>🚨 Priority:</strong> {incident.priority}
-            </p>
+        <StatusColumn
+          title="👤 ASSIGNED"
+          incidents={assignedIncidents}
+          navigate={navigate}
+        />
 
-            <p className="incident-info">
-              <strong>📂 Emergency:</strong> {incident.emergencyType}
-            </p>
+        <StatusColumn
+          title="🚑 EN ROUTE"
+          incidents={enRouteIncidents}
+          navigate={navigate}
+        />
 
-            <p className="incident-info">
-              <strong>📍 Location:</strong>{" "}
-              {incident.location || "Unknown"}
-            </p>
+        <StatusColumn
+          title="📍 ON SCENE"
+          incidents={onSceneIncidents}
+          navigate={navigate}
+        />
 
-            <p className="incident-info">
-              <strong>📊 Status:</strong> {incident.status}
-            </p>
-
-            <p className="incident-info">
-              <strong>🤖 AI Confidence:</strong>{" "}
-              {incident.aiConfidence != null
-                ? `${Math.round(incident.aiConfidence * 100)}%`
-                : "N/A"}
-            </p>
-
-            {incident.recommendedDepartment && (
-              <p className="incident-info">
-                <strong>🏥 Department:</strong>{" "}
-                {incident.recommendedDepartment}
-              </p>
-            )}
-
-            {incident.riskLevel && (
-              <p className="incident-info">
-                <strong>⚠️ Risk:</strong> {incident.riskLevel}
-              </p>
-            )}
-          </div>
-        ))
-      )}
+        <StatusColumn
+          title="✅ RESOLVED"
+          incidents={resolvedIncidents}
+          navigate={navigate}
+        />
+      </div>
     </div>
   );
 }
+

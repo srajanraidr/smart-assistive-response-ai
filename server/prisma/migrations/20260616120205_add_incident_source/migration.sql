@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `incident` ADD COLUMN `source` VARCHAR(191) NOT NULL DEFAULT 'WEB';

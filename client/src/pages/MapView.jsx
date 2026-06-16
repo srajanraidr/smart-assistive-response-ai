@@ -2,25 +2,41 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import socket from "../socket";
 import "leaflet/dist/leaflet.css";
 
 export default function MapView() {
   const [incidents, setIncidents] = useState([]);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchIncidents = async () => {
-      try {
-        const res = await api.get("/incidents");
-        setIncidents(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+ useEffect(() => {
+  const fetchIncidents = async () => {
+    const res = await api.get("/incidents");
+    setIncidents(res.data);
+  };
 
-    fetchIncidents();
-  }, []);
+  fetchIncidents();
 
+  const handleNewIncident = (incident) => {
+    if (
+      incident.latitude != null &&
+      incident.longitude != null
+    ) {
+      setIncidents((prev) => {
+        if (prev.some((i) => i.id === incident.id)) {
+          return prev;
+        }
+        return [incident, ...prev];
+      });
+    }
+  };
+
+  socket.on("new-incident", handleNewIncident);
+
+  return () => {
+    socket.off("new-incident", handleNewIncident);
+  };
+}, []);
   return (
     <div style={{ height: "90vh", width: "100%" }}>
       <MapContainer

@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 import Sidebar from "./components/Sidebar";
 import ProtectedRoute from "./components/ProtectedRoute";
-
+import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Analyze from "./pages/Analyze";
@@ -11,31 +11,39 @@ import UploadAudio from "./pages/UploadAudio";
 import MapView from "./pages/MapView";
 import CompletedIncidents from "./pages/CompletedIncidents";
 import Analytics from "./pages/Analytics";
+import TrackIncident from "./pages/TrackIncident";
 
 function Layout() {
   const location = useLocation();
 
-  // Login page is "/"
-  const isLoginPage = location.pathname === "/";
+  // Hide sidebar on public pages
+  const hideLayout =
+    location.pathname === "/" ||
+    location.pathname === "/login" ||
+    location.pathname === "/report";
 
   return (
     <>
-      {/* Only show sidebar after login */}
-      {!isLoginPage && <Sidebar />}
+      {/* Sidebar only for authenticated staff pages */}
+      {!hideLayout && <Sidebar />}
 
       {/* Main content */}
       <div
         style={{
-          marginLeft: isLoginPage ? "0" : "240px",
+          marginLeft: hideLayout ? "0" : "240px",
           minHeight: "100vh",
-          padding: "24px",
+          padding: hideLayout ? "0" : "24px",
         }}
       >
         <Routes>
-          {/* Public Route */}
-          <Route path="/" element={<Login />} />
+          {/* Public Pages */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
 
-          {/* Dashboard */}
+          {/* Public emergency reporting */}
+          <Route path="/report" element={<UploadAudio />} />
+
+          {/* Protected Staff Pages */}
           <Route
             path="/dashboard"
             element={
@@ -45,7 +53,6 @@ function Layout() {
             }
           />
 
-          {/* Analyze */}
           <Route
             path="/analyze"
             element={
@@ -55,7 +62,6 @@ function Layout() {
             }
           />
 
-          {/* Upload Audio */}
           <Route
             path="/upload-audio"
             element={
@@ -65,7 +71,6 @@ function Layout() {
             }
           />
 
-          {/* Incident Details */}
           <Route
             path="/incidents/:id"
             element={
@@ -75,7 +80,6 @@ function Layout() {
             }
           />
 
-          {/* Live Map */}
           <Route
             path="/map"
             element={
@@ -85,7 +89,6 @@ function Layout() {
             }
           />
 
-          {/* Completed Incidents */}
           <Route
             path="/completed"
             element={
@@ -100,6 +103,15 @@ function Layout() {
             element={
               <ProtectedRoute>
                 <Analytics />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/track/:id"
+            element={
+              <ProtectedRoute>
+                <TrackIncident />
               </ProtectedRoute>
             }
           />

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api/axios";
+import PriorityBadge from "../components/PriorityBadge";
+import StatusBadge from "../components/StatusBadge";
 import "../styles/incident-details.css";
 
 export default function IncidentDetails() {
@@ -107,11 +109,13 @@ export default function IncidentDetails() {
         </p>
 
         <p>
-          <strong>⚠️ Priority:</strong> {incident.priority}
+          <strong>🚨 Priority:</strong>{" "}
+          <PriorityBadge priority={incident.priority} />
         </p>
 
         <p>
-          <strong>📊 Status:</strong> {incident.status}
+          <strong>📊 Status:</strong>{" "}
+          <StatusBadge status={incident.status} />
         </p>
 
         <p>
@@ -221,32 +225,40 @@ export default function IncidentDetails() {
           </button>
         ))}
       </div>
+      <h2>📜 Incident Timeline</h2>
 
-      <h2>Status Timeline</h2>
+{history.length === 0 ? (
+  <p>No history available.</p>
+) : (
+  <div style={{ marginTop: "20px" }}>
+    {history.map((item) => (
+      <div
+        key={item.id}
+        style={{
+          borderLeft: "4px solid #2563eb",
+          paddingLeft: "16px",
+          marginBottom: "20px",
+        }}
+      >
+        <h4 style={{ margin: 0 }}>
+          {item.oldStatus
+            ? `${item.oldStatus} → ${item.newStatus}`
+            : item.action}
+        </h4>
 
-      {history.length === 0 ? (
-        <p>No status changes yet.</p>
-      ) : (
-        <div className="timeline">
-          {history.map((item) => (
-            <div
-              key={item.id}
-              className="timeline-item"
-            >
-              <strong>
-                {item.oldStatus || "CREATED"} →{" "}
-                {item.newStatus}
-              </strong>
+        {item.message && (
+          <p style={{ margin: "6px 0" }}>
+            {item.message}
+          </p>
+        )}
 
-              <div>
-                {new Date(
-                  item.changedAt
-                ).toLocaleString()}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+        <small>
+          {new Date(item.changedAt).toLocaleString()}
+        </small>
+      </div>
+    ))}
+  </div>
+)}
     </div>
   );
 }

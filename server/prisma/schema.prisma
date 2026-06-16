@@ -44,21 +44,23 @@ model User {
 }
 
 model Department {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model EmergencyCall {
-  id                   Int      @id @default(autoincrement())
+  id                   Int     @id @default(autoincrement())
   callerPhone          String?
   transcript           String
   transcriptConfidence Float?
   audioFile            String?
   language             String?
-  createdAt            DateTime @default(now())
+
+  createdAt DateTime @default(now())
 
   incidents Incident[]
 }
@@ -70,18 +72,23 @@ model Incident {
   description   String?
   emergencyType String
   priority      Priority
-  location      String?
-  aiConfidence  Float?
+
+  location     String?
+  latitude     Float?
+  longitude    Float?
+  aiConfidence Float?
 
   recommendedDepartment String?
   riskLevel             String?
   keywords              Json?
   requiresHumanReview   Boolean @default(true)
 
+  // Source of incident (WEB, MIC, PHONE, etc.)
+  source String @default("WEB")
+
   emergencyCallId Int?
   emergencyCall   EmergencyCall? @relation(fields: [emergencyCallId], references: [id])
 
-  // Dispatcher assignment
   assignedToId Int?
   assignedTo   User? @relation("IncidentAssignee", fields: [assignedToId], references: [id])
 
@@ -89,23 +96,20 @@ model Incident {
 
   history IncidentHistory[]
 
-  latitude  Float?
-  longitude Float?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model IncidentHistory {
-  id         Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
   incidentId Int
   incident   Incident @relation(fields: [incidentId], references: [id])
 
-  action String @default("STATUS_CHANGED")        // e.g. CREATED, STATUS_CHANGED, ASSIGNED
-  oldStatus  String?
-  newStatus  String?
-  message    String?
+  action    String  @default("STATUS_CHANGED")
+  oldStatus String?
+  newStatus String?
+  message   String?
 
-  changedAt  DateTime @default(now())
+  changedAt DateTime @default(now())
 }

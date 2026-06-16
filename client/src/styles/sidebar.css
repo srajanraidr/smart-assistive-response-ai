@@ -1,76 +1,105 @@
-.sidebar {
-  width: 240px;
+﻿.sidebar {
+  width: 260px;
   min-height: 100vh;
-  background: #111827;
-  color: white;
-  padding: 24px;
+  background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+  color: #e2e8f0;
+  padding: 30px 22px;
   position: fixed;
   left: 0;
   top: 0;
+  box-shadow: 4px 0 35px rgba(15, 23, 42, 0.24);
 }
 
 .sidebar-logo {
   margin-bottom: 32px;
 }
 
+.sidebar-logo h2,
+.sidebar-logo p {
+  margin: 0;
+}
+
+.sidebar-logo h2 {
+  font-size: 1.55rem;
+  letter-spacing: -0.04em;
+  color: #ffffff;
+}
+
+.sidebar-logo p {
+  margin-top: 6px;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
 .sidebar nav {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .sidebar a {
-  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #cbd5e1;
   text-decoration: none;
-  padding: 10px;
-  border-radius: 8px;
-  transition: background 0.2s;
+  padding: 12px 16px;
+  border-radius: 16px;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-.sidebar a:hover {
-  background: #374151;
+.sidebar a:hover,
+.sidebar a.active {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
 }
 
 .logout-btn {
-  margin-top: 20px;
+  margin-top: 24px;
   width: 100%;
-  padding: 10px;
+  padding: 14px 18px;
   border: none;
-  border-radius: 8px;
+  border-radius: 16px;
   cursor: pointer;
+  background: #ef4444;
+  color: white;
+  font-weight: 700;
+  transition: background 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: #dc2626;
 }
 
 .logout-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-
+  background: rgba(15, 23, 42, 0.65);
   display: flex;
   justify-content: center;
   align-items: center;
-
   z-index: 9999;
 }
 
 .logout-modal {
-  background: white;
-  padding: 24px;
-  border-radius: 12px;
-  width: 340px;
+  background: #ffffff;
+  padding: 28px;
+  border-radius: 24px;
+  width: min(360px, 92vw);
   text-align: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
 }
 
 .logout-actions {
   display: flex;
   justify-content: center;
-  gap: 12px;
-  margin-top: 20px;
+  gap: 14px;
+  margin-top: 24px;
 }
 
 .logout-actions button {
-  padding: 10px 18px;
+  padding: 12px 20px;
   border: none;
-  border-radius: 8px;
+  border-radius: 14px;
   cursor: pointer;
 }

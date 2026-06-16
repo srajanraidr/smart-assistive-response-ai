@@ -41,6 +41,8 @@ const createIncident = async (req, res) => {
       priority,
       location,
       aiConfidence,
+      latitude,
+      longitude,
     } = req.body;
 
     if (!title || !emergencyType) {
@@ -48,17 +50,21 @@ const createIncident = async (req, res) => {
         message: "Title and emergencyType are required",
       });
     }
+    console.log("Received latitude:", req.body.latitude);
+console.log("Received longitude:", req.body.longitude);
 
     const incident = await prisma.incident.create({
-      data: {
-        title,
-        description,
-        emergencyType,
-        priority,
-        location,
-        aiConfidence,
-      },
-    });
+  data: {
+    title,
+    description,
+    emergencyType,
+    priority,
+    location,
+    aiConfidence,
+    latitude: latitude ? Number(latitude) : null,
+    longitude: longitude ? Number(longitude) : null,
+  },
+});
 
     // Broadcast to all dashboards
     getIO().emit("new-incident", incident);

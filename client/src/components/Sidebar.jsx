@@ -3,16 +3,15 @@ import { useState } from "react";
 import "../styles/sidebar.css";
 
 export default function Sidebar() {
-  const role = localStorage.getItem("role");
   const navigate = useNavigate();
+
+  const role = localStorage.getItem("role");
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("user");
-
+    localStorage.clear();
     navigate("/");
   };
 
@@ -20,6 +19,12 @@ export default function Sidebar() {
     <>
       <aside className="sidebar">
         <h2 className="sidebar-logo">🚨 SARA</h2>
+
+        {/* User Info */}
+        <div className="user-card">
+  <h3>👤 {user.fullName || "User"}</h3>
+  <p>🛡️ {role}</p>
+</div>
 
         <nav className="sidebar-nav">
           {/* Dashboard */}
@@ -29,7 +34,7 @@ export default function Sidebar() {
             <Link to="/dashboard">🏠 Dashboard</Link>
           )}
 
-          {/* Upload Audio */}
+          {/* Upload */}
           {(role === "ADMIN" || role === "OPERATOR") && (
             <Link to="/upload-audio">🎤 Upload Audio</Link>
           )}
@@ -39,7 +44,7 @@ export default function Sidebar() {
             <Link to="/analyze">🤖 Analyze Text</Link>
           )}
 
-          {/* Live Map */}
+          {/* Map */}
           {(role === "ADMIN" ||
             role === "DISPATCHER" ||
             role === "OPERATOR") && (
@@ -54,13 +59,13 @@ export default function Sidebar() {
               ✅ Completed Incidents
             </Link>
           )}
-          {/* Analytics */}
-          {(role === "ADMIN" || role === "DISPATCHER") && (
+
+          {/* Analytics - ADMIN only */}
+          {role === "ADMIN" && (
             <Link to="/analytics">📊 Analytics</Link>
           )}
         </nav>
 
-        {/* Logout Button */}
         <button
           className="logout-btn"
           onClick={() => setShowLogoutModal(true)}
@@ -69,23 +74,26 @@ export default function Sidebar() {
         </button>
       </aside>
 
-      {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div className="logout-modal-overlay">
           <div className="logout-modal">
-            <h3>Confirm Logout</h3>
+            <h3>Logout</h3>
 
             <p>
-              Are you sure you want to log out of your SARA account?
+              Are you sure you want to log out?
             </p>
 
             <div className="logout-actions">
-              <button onClick={() => setShowLogoutModal(false)}>
+              <button
+                onClick={() =>
+                  setShowLogoutModal(false)
+                }
+              >
                 Cancel
               </button>
 
               <button onClick={handleLogout}>
-                Yes, Logout
+                Logout
               </button>
             </div>
           </div>
