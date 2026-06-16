@@ -5,8 +5,12 @@ let io;
 function initializeSocket(httpServer) {
   io = new Server(httpServer, {
     cors: {
-      origin: "http://localhost:5173", // Vite dev server
+      origin: [
+        "http://localhost:5173",
+        process.env.CLIENT_URL,
+      ],
       methods: ["GET", "POST"],
+      credentials: true,
     },
   });
 
